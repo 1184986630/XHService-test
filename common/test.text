@@ -12,4 +12,4 @@ http://172.16.20.121:80/bllweb/tianyimall/order/revenuesharing?orderid=600000000
 http://localhost:8080/tianyimall/payresaddress?orderid=600000000000008316070535641618&platformId=111
 套餐明细列表：
 http://localhost:8080/pyxiaohao/database/xiaohao/tcinfos?xspid=123456
-
+ss
