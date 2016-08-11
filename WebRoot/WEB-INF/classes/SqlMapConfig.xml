@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<settings>
+		<setting name="jdbcTypeForNull" value="NULL" />
+	</settings>
+	
+	<typeAliases>
+	<typeAlias alias="XhInfo" type="cn.ffcs.xhService.uphold.model.XhInfo" />
+	<typeAlias alias="BillsSettleInfo" type="cn.ffcs.xhService.uphold.model.BillsSettleInfo" />
+	<typeAlias alias="BillsInfo" type="cn.ffcs.xhService.uphold.model.BillsInfo" />
+	<typeAlias alias="CallRecordsInfo" type="cn.ffcs.xhService.uphold.model.CallRecordsInfo" />
+	<typeAlias alias="XhSmsInfo" type="cn.ffcs.xhService.uphold.model.XhSmsInfo" />
+	<!-- 订单 -->
+	<typeAlias alias="DealBillPayresponse" type="cn.ffcs.xhService.order.model.DealBillPayresponse" />
+	<typeAlias alias="RowCount" type="cn.ffcs.xhService.uphold.model.RowCount" />
+	<typeAlias alias="DealCustInfo" type="cn.ffcs.xhService.order.model.DealCustInfo" />
+	<typeAlias alias="DealInvoiceInfo" type="cn.ffcs.xhService.order.model.DealInvoiceInfo" />
+	<typeAlias alias="DealOrderExtendProperty" type="cn.ffcs.xhService.order.model.DealOrderExtendProperty" />
+	<typeAlias alias="DealOrderStatusRecode" type="cn.ffcs.xhService.order.model.DealOrderStatusRecode" />
+	<typeAlias alias="DealOrderUserChoose" type="cn.ffcs.xhService.order.model.DealOrderUserChoose" />
+	<typeAlias alias="DealOrderXhFlag" type="cn.ffcs.xhService.order.model.DealOrderXhFlag" />
+	<typeAlias alias="DealXhDcOrderStatus" type="cn.ffcs.xhService.order.model.DealXhDcOrderStatus" />
+	<typeAlias alias="XhOrderDeal" type="cn.ffcs.xhService.order.model.XhOrderDeal" />
+	<typeAlias alias="XhOrderFail" type="cn.ffcs.xhService.order.model.XhOrderFail" />
+	<typeAlias alias="XhOrderInfo" type="cn.ffcs.xhService.order.model.XhOrderInfo" />
+	<typeAlias alias="XhOrderOpt" type="cn.ffcs.xhService.order.model.XhOrderOpt" />
+	<typeAlias alias="XhProInfo" type="cn.ffcs.xhService.uphold.entity.XhProInfo" />
+	<!-- 订单 -->
+	<!-- 销售品 -->
+	<typeAlias alias="XhProduct" type="cn.ffcs.xhService.sales.model.XhProduct" />
+	<typeAlias alias="TsAssetInfo" type="cn.ffcs.xhService.sales.model.TsAssetInfo" />
+	<typeAlias alias="XhSales" type="cn.ffcs.xhService.sales.model.XhSales" />
+	<!-- 销售品 -->
+	</typeAliases>
+	
+	<mappers>
+	<mapper resource="cn/ffcs/xhService/uphold/sql/xhinfo.xml" />
+	<mapper resource="cn/ffcs/xhService/uphold/sql/billssettleinfo.xml" />
+	<mapper resource="cn/ffcs/xhService/uphold/sql/his_xhinfo.xml" />
+	<mapper resource="cn/ffcs/xhService/uphold/sql/billsinfo.xml" />
+	<mapper resource="cn/ffcs/xhService/uphold/sql/xhsmsinfo.xml" />
+	<mapper resource="cn/ffcs/xhService/uphold/sql/xhproinfo.xml" />
+	<!-- 订单 -->
+	<mapper resource="cn/ffcs/xhService/order/sql/dealbillpayresponse.xml" />
+	<mapper resource="cn/ffcs/xhService/order/sql/dealcustinfo.xml" />
+	<mapper resource="cn/ffcs/xhService/order/sql/dealinvoiceinfo.xml" />
+	<mapper resource="cn/ffcs/xhService/order/sql/dealorderextendproperty.xml" />
+	<mapper resource="cn/ffcs/xhService/order/sql/dealorderstatusrecode.xml" />
+	<mapper resource="cn/ffcs/xhService/order/sql/dealorderuserchoose.xml" />
+	<mapper resource="cn/ffcs/xhService/order/sql/dealorderxhflag.xml" />
+	<mapper resource="cn/ffcs/xhService/order/sql/dealxhdcorderstatus.xml" />
+	<mapper resource="cn/ffcs/xhService/order/sql/xhorderdeal.xml" />
+	<mapper resource="cn/ffcs/xhService/order/sql/xhorderfail.xml" />
+	<mapper resource="cn/ffcs/xhService/order/sql/xhorderinfo.xml" />
+	<mapper resource="cn/ffcs/xhService/order/sql/xhorderopt.xml" />
+	<!-- 订单 -->
+	<!-- 销售品 -->
+	<mapper resource="cn/ffcs/xhService/sales/sql/xhproduct.xml" />
+	<mapper resource="cn/ffcs/xhService/sales/sql/tsassetinfo.xml" />
+	<mapper resource="cn/ffcs/xhService/sales/sql/xhsales.xml" />
+	<!-- 销售品 -->
+    </mappers>
+    
+</configuration>

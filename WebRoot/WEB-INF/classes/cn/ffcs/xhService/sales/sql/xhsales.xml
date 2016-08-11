@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="XhSales">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	<!-- 查询区域 -->
+	<sql id="queryXhSalesField">
+		SALE_ID,
+		SALE_NAME,
+		SALE_DIS_NAME,
+		SALE_DESC,
+		TS_MK_TYPE_ID,
+		TS_OFFER_TYPE,
+		TS_GS_CODE,
+		TS_GS_NM,
+		STATUS,
+		ORDER_EFFECT_TIME,
+		OPRID,
+		UPDID,
+		to_char(CREATETIME, 'YYYY-MM-DD HH24:MI:SS') CREATETIME,
+		to_char(UPDTIME, 'YYYY-MM-DD HH24:MI:SS') UPDTIME
+	</sql>
+
+	<!-- 查询销售品-->
+	<select id="selectXhSales" parameterType="java.util.Map" resultType="XhSales">
+		SELECT
+			<include refid="queryXhSalesField" />
+		FROM XhSales
+		<where>
+			<if test="sale_id != null">
+				AND SALE_ID = #{sale_id}
+			</if>
+		</where>
+	</select>
+</mapper>

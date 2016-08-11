@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Task">
+	<!-- 按小时执行存储过程  -->
+	<select id="updateTodayData" statementType="CALLABLE">
+		call ora_pro_update_today_data()
+	</select>
+	
+	<!-- 按天执行存储过程  -->
+	<select id="updateYesterdayData" statementType="CALLABLE">
+		call ora_pro_update_yesterday_data()
+	</select>
+	
+	<!-- 按月执行存储过程  -->
+	<select id="updateMonthData" parameterMap="updateProBillsSettleInfoMap" statementType="CALLABLE">
+		call ora_pro_update_month_data(#{v_month})
+	</select>
+	
+	<!-- 统计月结账单参数 -->
+	<parameterMap type="java.util.Map" id="updateProBillsSettleInfoMap">
+		<parameter property="v_month" jdbcType="INTEGER" javaType="java.lang.Integer" mode="IN" />
+	</parameterMap>
+</mapper>

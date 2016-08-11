@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="PackageInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+	<!-- 套餐查询字段 -->
+	<sql id="queryPackageInfoField">
+        SALESID, 
+        SALESTYPE, 
+        SMSAMOUNT, 
+        USEDAYS, 
+        SALESNAME, 
+        SALESDESC, 
+        FEE,
+        to_char(CREATETIME, 'yyyy-mm-dd hh24:mi:ss') CREATETIME
+    </sql>
+    
+    <!-- 套餐增加字段 -->
+	<sql id="insertPackageInfoField">
+        SALESID, 
+        SALESTYPE, 
+        SMSAMOUNT, 
+        USEDAYS, 
+        SALESNAME, 
+        SALESDESC, 
+        FEE,
+        CREATETIME
+    </sql>
+     
+	<!-- 查询套餐 -->
+	<select id="selectPackageInfo" parameterType="java.util.Map" resultType="PackageInfo">
+		SELECT
+			<include refid="queryPackageInfoField" />
+		FROM PACKAGEINFO
+		<where>
+			<if test="salesid != null">
+				AND SALESID = #{salesid}
+			</if>
+			<if test="salesids != null">
+				AND SALESID in
+				<foreach collection="salesids" item="salesid" open="(" separator="," close=")">
+					#{salesid}
+				</foreach>
+			</if>
+		</where>
+		<include refid="orderSql" />
+	</select>
+	
+	<!-- 统计套餐 -->
+	<select id="selectPackageInfoCount" parameterType="map" resultType="int">
+		SELECT COUNT(*)
+		FROM PACKAGEINFO
+		<where>
+			<if test="salesid != null">
+				AND SALESID = #{salesid}
+			</if>
+			<if test="salestype != null">
+				AND SALESTYPE = #{salestype}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 增加套餐 -->
+	<insert id="insertPackageInfo" parameterType="PackageInfo">
+		INSERT INTO PACKAGEINFO (
+			<include refid="insertPackageInfoField" />
+		) VALUES (
+			#{salesId}, 
+	        #{salesType}, 
+	        #{SMSAmount}, 
+	        #{useDays}, 
+	        #{salesName}, 
+	        #{salesDesc}, 
+	        #{fee},
+	        sysdate
+		)
+	</insert>
+	
+	<!-- 删除套餐 -->
+	<delete id="deletePackageInfo">
+		DELETE FROM PACKAGEINFO
+		<where>
+			<if test="salesid != null">
+				AND SALESID = #{salesid}
+			</if>
+		</where>
+	</delete>
+</mapper>

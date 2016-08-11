@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="EntRechargeInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+	<!-- 增加重置记录 -->
+	<insert id="insertEntRechargeInfo" parameterType="EntRechargeInfo">
+		INSERT INTO ENT_RECHARGEINFO (
+			ID,
+			SPID,
+			APPID,
+			RECHARGETYPE,
+			AMOUNT,
+			CREATETIME
+		) VALUES (
+			SEQ_ENTRECHARGEINFO.NEXTVAL,
+			#{spId},
+			#{appId},
+			#{rechargeType},
+			#{amount},
+			to_date(#{createTime}, 'YYYY-MM-DD HH24:mi:ss')
+		)
+	</insert>
+</mapper>

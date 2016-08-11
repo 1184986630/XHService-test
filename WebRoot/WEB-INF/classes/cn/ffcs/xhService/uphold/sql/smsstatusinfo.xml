@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="SmsStatusInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+	<!-- 增加HTTP短信发送状态推送 -->
+	<insert id="insertSmsStatusInfo" parameterType="SmsStatusInfo">
+		INSERT INTO SMSSTATUSINFO (
+			VSESSIONID,
+			VTYPE,
+			VCALLER, 
+			VCALLEE,
+			VSTATUS,
+			VLASTSTATUS,
+			CALLERNO,
+			CALLEDNO
+		) VALUES (
+			#{vsessionid},
+			#{vtype},
+			#{vcaller},
+			#{vcallee},
+			#{vstatus},
+			#{vlaststatus},
+			#{callerno},
+			#{calledno}
+		)
+	</insert>
+	
+</mapper>

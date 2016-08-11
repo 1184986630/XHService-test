@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="XhSmsInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+	<!-- 增加短信推送信息 -->
+	<insert id="insertXhSmsInfo" parameterType="XhSmsInfo">
+		INSERT INTO XHSMSINFO (
+			SMSID,
+			VCALLER,
+			VCALLEE,
+			VCONTENT,
+			CREATETIME,
+			CALLERNO,
+			CALLEDNO
+		) VALUES (
+			SEQ_XHSMSINFO.NEXTVAL,
+			#{vcaller},
+			#{vcallee},
+			#{vcontent},
+			to_date(#{createtime},'YYYY-MM-DD HH24:MI:SS'),
+			#{callerno},
+			#{calledno}
+		)
+	</insert>
+	<!-- 查询短信推送信息 -->
+	<select id="selectXhSmsInfo" parameterType="java.util.Map" resultType="RowCount">
+		SELECT
+			SMSID,
+			VCALLER,
+			VCALLEE,
+			to_char(CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,
+			VCONTENT
+		FROM XHSMSINFO
+		<where>
+			<if test="rno != null">
+				and VCALLER = #{rno}
+			</if>
+			<if test="virtualNo != null">
+				and VCALLEE = #{virtualNo}
+			</if>
+				and smsreaded = #{unread}
+		</where>
+	
+	</select>
+	<!-- 设置短信已读 -->
+	<update id="updateXhSmsInfo" parameterType="map">
+		UPDATE XHSMSINFO
+		<set>
+				smsreaded = #{readed}
+		</set>
+		<where>
+			<if test="rno != null">
+				AND VCALLER = #{rno}
+			</if>
+			<if test="virtualNo != null">
+				AND VCALLEE = #{virtualNo}
+			</if>
+			<if test="smsid != null">
+				AND smsid = #{smsid}
+			</if>
+		</where>
+	</update>
+	
+	<!-- 未读短信分组列表查询 -->
+	<select id="selectXhSmsGroupInfo" parameterType="java.util.Map" resultType="RowCount">
+		SELECT  
+		c.VCALLER,
+        c.CREATETIME,
+        c.VCONTENT,
+        c.row_wd ROW_COUNT
+        FROM (SELECT ROW_NUMBER() OVER(PARTITION BY VCALLER, VCALLEE ORDER BY b.row_wd DESC) RN,b.*
+        FROM (SELECT a.*,
+        ROW_NUMBER() 
+        OVER(partition by VCALLER, VCALLEE ORDER BY CREATETIME ASC) row_wd
+        FROM XHSMSINFO a
+        <where>
+			<if test="virtualNo != null">
+				and VCALLEE = #{virtualNo}
+			</if>
+				and smsreaded = #{unread}
+		</where>
+		) b) c
+		where RN = 1
+        ORDER BY CREATETIME DESC
+	</select>
+</mapper>

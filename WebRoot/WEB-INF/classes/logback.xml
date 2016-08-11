@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- For assistance related to logback-translator or configuration  -->
+<!-- files in general, please contact the logback user mailing list -->
+<!-- at http://www.qos.ch/mailman/listinfo/logback-user             -->
+<!--                                                                -->
+<!-- For professional support please see                            -->
+<!--    http://www.qos.ch/shop/products/professionalSupport         -->
+<!--                                                                -->
+<configuration>
+       <!-- Errors were reported during translation. -->
+       <!-- No class found for appender fileout -->
+       <!-- Could not find transformer for null -->
+	   <property file="classpath:config.properties" />
+       <appender name="fileout">
+              <!--No layout specified for appender named [fileout] of class [null]-->
+       </appender>
+       <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+              <encoder>
+                     <pattern>%date - %msg%n</pattern>
+              </encoder>
+       </appender>
+       <appender name="dailyfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+              <!--See http://logback.qos.ch/manual/appenders.html#RollingFileAppender-->
+              <!--and http://logback.qos.ch/manual/appenders.html#TimeBasedRollingPolicy-->
+              <!--for further documentation-->
+              <File>${log.path}</File>
+              <encoder>
+                     <pattern>%date - %msg%n</pattern>
+              </encoder>
+              <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                     <fileNamePattern>${log.path}_%d{yyyy-MM-dd}.log</fileNamePattern>
+              </rollingPolicy>
+       </appender>
+       <logger name="com.ibatis" level="${log.sql.level}"/>
+       <logger name="java.sql.PreparedStatement" level="${log.sql.level}">
+              <appender-ref ref="fileout"/>
+       </logger>
+       <logger name="com.ibatis.sqlmap.engine.impl.SqlMapClientDelegate" level="${log.sql.level}"/>
+       <logger name="java.sql.Statement" level="${log.sql.level}"/>
+       <logger name="com.ibatis.common.jdbc.SimpleDataSource" level="${log.sql.level}"/>
+       <logger name="java.sql.ResultSet" level="${log.sql.level}"/>
+       <logger name="com.ibatis.common.jdbc.ScriptRunner" level="${log.sql.level}"/>
+       <logger name="java.sql.Connection" level="${log.sql.level}"/>
+       <root level="${log.level}">
+              <appender-ref ref="stdout"/>
+              <appender-ref ref="dailyfile"/>
+       </root>
+</configuration>

@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="EntBillInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+    
+	<!-- 增加企业账单信息 -->
+	<insert id="insertEntBillInfo" parameterType="EntBillInfo">
+		INSERT INTO ENT_BILLINFO (
+			id,
+			spid,
+			appid,
+			billtype,
+			createtime,
+			calltotalin,
+			callfeein,
+			calltotal,
+			callfee,
+			smstotalin,
+			smsfeein,
+			smstotal,
+			smsfee
+		) VALUES (
+			SEQ_ENTBILL.NEXTVAL,
+			#{spid},
+			#{appid},
+			#{billtype},
+			#{createtime},
+			#{calltotalin},
+			#{callfeein},
+			#{calltotal},
+			#{callfee},
+			#{smstotalin},
+			#{smsfeein},
+			#{smstotal},
+			#{smsfee}
+		)
+	</insert>
+	
+	<!-- 统计满足条件的记录数 -->
+	<select id="selectEntBillInfoCount" parameterType="map" resultType="int">
+		 SELECT COUNT(*)
+  		FROM (
+  			 SELECT 
+  				SPID,
+                APPID,
+                CREATETIME,
+                SUM(CALLERTOTAL) CALLERTOTAL,
+                SUM(CALLERFEE) CALLERFEE,
+                SUM(CALLEDTOTAL) CALLEDTOTAL,
+                SUM(CALLEDFEE) CALLEDFEE,
+                SUM(SMSTOTAL) SMSTOTAL,
+                SUM(SMSFEE) SMSFEE,
+                SUM(USEDFEE) USEDFEE
+             FROM (
+             		SELECT 
+             			SPID,
+                        APPID,
+                        TO_CHAR(BEGINTIME, 'YYYY-MM') CREATETIME,
+                        CASE CALLTYPE
+                          WHEN '1' THEN
+                            SUM(USECOUNT)
+                          ELSE
+                            0
+                        END CALLERTOTAL,
+                        CASE CALLTYPE
+                           WHEN '1' THEN
+                            SUM(FEE)
+                           ELSE
+                            0
+                        END CALLERFEE,
+                        CASE CALLTYPE
+                           WHEN '2' THEN
+                            SUM(USECOUNT)
+                           ELSE
+                            0
+                        END CALLEDTOTAL,
+                        CASE CALLTYPE
+                           WHEN '2' THEN
+                            SUM(FEE)
+                           ELSE
+                            0
+                        END CALLEDFEE,
+                        CASE CALLTYPE
+                           WHEN '3' THEN
+                            SUM(USECOUNT)
+                           ELSE
+                            0
+                        END SMSTOTAL,
+                        CASE CALLTYPE
+                           WHEN '3' THEN
+                            SUM(FEE)
+                           ELSE
+                            0
+                        END SMSFEE,
+                        CASE CALLTYPE
+                           WHEN '6' THEN
+                            SUM(FEE)
+                           ELSE
+                            0
+                        END USEDFEE
+                    FROM ENT_DETAILBILL
+                    <where>
+                    	<if test="spid != null">
+							AND SPID = #{spid}
+						</if>
+						<if test="appid != null">
+							AND APPID = #{appid}
+						</if>
+						<if test="calltypes != null">
+							AND CALLTYPE IN
+							<foreach collection="calltypes" item="calltype" open="(" separator="," close=")">
+								#{calltype}
+							</foreach>
+						</if>
+						<if test="curday != null">
+							<![CDATA[ AND BEGINTIME >= TO_DATE(#{curday}, 'YYYY-MM-DD')  ]]>
+						</if>
+						<if test="endday != null">
+							<![CDATA[ AND BEGINTIME < TO_DATE(#{endday}, 'YYYY-MM-DD')  ]]>
+						</if>
+                    </where>
+                   GROUP BY TO_CHAR(BEGINTIME, 'YYYY-MM'), SPID, APPID, CALLTYPE
+                
+                  UNION ALL
+                
+                  SELECT 
+                  	   SPID,
+                       APPID,
+                       TO_CHAR(CREATETIME, 'YYYY-MM') CREATETIME,
+                       CALLERTOTAL,
+                       CALLERFEE,
+                       CALLEDTOTAL,
+                       CALLEDFEE,
+                       SMSTOTAL,
+                       SMSFEE,
+                       USEDFEE
+                  FROM ENT_BILLINFO
+                  <where>
+                   	<if test="spid != null">
+						AND SPID = #{spid}
+					</if>
+					<if test="appid != null">
+						AND APPID = #{appid}
+					</if>
+					<if test="billtype != null">
+						AND BILLTYPE = #{billtype}
+					</if>
+					<if test="startmonth != null">
+						<![CDATA[ AND CREATETIME >= TO_DATE(#{startmonth}, 'YYYY-MM')  ]]>
+					</if>
+					<if test="endmonth != null">
+						<![CDATA[ AND CREATETIME <= TO_DATE(#{endmonth}, 'YYYY-MM')  ]]>
+					</if>
+                  </where>
+             )
+        GROUP BY SPID, APPID, CREATETIME)
+	</select>
+	
+	<!-- 查询企业账单 -->
+	<select id="selectEntBillInfo"  parameterType="java.util.Map" resultType="EntSettleBillInfo">
+		SELECT 
+		   A.SPID,
+           A.APPID,
+	       A.CREATETIME,
+	       
+	       A.CALLERTOTAL,
+	       C.CALLERFEE CALLERPRICE,
+	       B.DIALDISCOUNT,
+	       A.CALLERFEE,
+	       
+	       A.CALLEDTOTAL,
+	       C.CALLEDFEE CALLEDPRICE,
+	       B.ANSWERDISCOUNT CALLEDDISCOUNT,
+	       A.CALLEDFEE,
+	       
+	       A.SMSTOTAL,
+	       C.SMSFEE SMSPRICE,
+	       B.SMSDISCOUNT,
+	       A.SMSFEE,
+	       
+	       C.USEDFEE USEDPRICE,
+	       USEDFEEDISCOUNT,
+	       A.USEDFEE,
+	       A.CALLERFEE+A.CALLEDFEE+A.SMSFEE+A.USEDFEE TOTALFEE
+  		FROM (
+  			SELECT 
+  				SPID,
+                APPID,
+                CREATETIME,
+                SUM(CALLERTOTAL) CALLERTOTAL,
+                SUM(CALLERFEE) CALLERFEE,
+                SUM(CALLEDTOTAL) CALLEDTOTAL,
+                SUM(CALLEDFEE) CALLEDFEE,
+                SUM(SMSTOTAL) SMSTOTAL,
+                SUM(SMSFEE) SMSFEE,
+                SUM(USEDFEE) USEDFEE
+             FROM (
+             		SELECT 
+             			SPID,
+                        APPID,
+                        TO_CHAR(BEGINTIME, 'YYYY-MM') CREATETIME,
+                        CASE CALLTYPE
+                          WHEN '1' THEN
+                            SUM(USECOUNT)
+                          ELSE
+                            0
+                        END CALLERTOTAL,
+                        CASE CALLTYPE
+                           WHEN '1' THEN
+                            SUM(FEE)
+                           ELSE
+                            0
+                        END CALLERFEE,
+                        CASE CALLTYPE
+                           WHEN '2' THEN
+                            SUM(USECOUNT)
+                           ELSE
+                            0
+                        END CALLEDTOTAL,
+                        CASE CALLTYPE
+                           WHEN '2' THEN
+                            SUM(FEE)
+                           ELSE
+                            0
+                        END CALLEDFEE,
+                        CASE CALLTYPE
+                           WHEN '3' THEN
+                            SUM(USECOUNT)
+                           ELSE
+                            0
+                        END SMSTOTAL,
+                        CASE CALLTYPE
+                           WHEN '3' THEN
+                            SUM(FEE)
+                           ELSE
+                            0
+                        END SMSFEE,
+                        CASE CALLTYPE
+                           WHEN '6' THEN
+                            SUM(FEE)
+                           ELSE
+                            0
+                        END USEDFEE
+                    FROM ENT_DETAILBILL
+                    <where>
+                    	<if test="spid != null">
+							AND SPID = #{spid}
+						</if>
+						<if test="appid != null">
+							AND APPID = #{appid}
+						</if>
+						<if test="phoneno != null">
+							AND PHONENO = #{phoneno}
+						</if>
+						<if test="virtualno != null">
+							AND VIRTUALNO = #{virtualno}
+						</if>
+						<if test="calltypes != null">
+							AND CALLTYPE IN
+							<foreach collection="calltypes" item="calltype" open="(" separator="," close=")">
+								#{calltype}
+							</foreach>
+						</if>
+						<if test="curday != null">
+							<![CDATA[ AND BEGINTIME >= TO_DATE(#{curday}, 'YYYY-MM-DD') ]]>
+						</if>
+						<if test="endday != null">
+							<![CDATA[ AND BEGINTIME < TO_DATE(#{endday}, 'YYYY-MM-DD') ]]>
+						</if>
+                    </where>
+                   GROUP BY TO_CHAR(BEGINTIME, 'YYYY-MM'), SPID, APPID, CALLTYPE
+                
+                  UNION ALL
+                
+                  SELECT 
+                  	   SPID,
+                       APPID,
+                       TO_CHAR(CREATETIME, 'YYYY-MM') CREATETIME,
+                       CALLERTOTAL,
+                       CALLERFEE,
+                       CALLEDTOTAL,
+                       CALLEDFEE,
+                       SMSTOTAL,
+                       SMSFEE,
+                       USEDFEE
+                  FROM ENT_BILLINFO
+                  <where>
+                   	<if test="spid != null">
+						AND SPID = #{spid}
+					</if>
+					<if test="appid != null">
+						AND APPID = #{appid}
+					</if>
+					<if test="billtype != null">
+						AND BILLTYPE = #{billtype}
+					</if>
+					<if test="startmonth != null">
+						<![CDATA[ AND CREATETIME >= TO_DATE(#{startmonth}, 'YYYY-MM') ]]>
+					</if>
+					<if test="endmonth != null">
+						<![CDATA[ AND CREATETIME <= TO_DATE(#{endmonth}, 'YYYY-MM') ]]>
+					</if>
+                  </where>
+            ) GROUP BY SPID, APPID, CREATETIME) A, ENT_INFO B, ENT_PACKAGEINFO C, ENT_XHINFO D
+            <where>
+             	A.SPID = B.SPID
+			    AND A.APPID = B.APPID
+			    AND A.SPID = D.SPID
+			    AND A.APPID = D.APPID
+			    AND D.PKNBR = C.PKNBR
+            </where>
+	</select>
+</mapper>

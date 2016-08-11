@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="HisXhInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+    <!-- 增加字段 -->
+	<sql id="insertHisXhInfoField">  
+        PHONENO, 
+        VIRTUALNO, 
+        CREATETIME,
+        EFFECTTIME,
+        LOGOFFTIME,
+        ENDTIME,
+        REMAINSMS, 
+        CLOSESTATUS, 
+        CLOSEBEGIN,
+        CLOSEEND,
+        WEEKDAY,
+        USEDAYS,
+        STATUSUPDATETIME
+    </sql>
+	
+	<!-- 增加小号历史信息 -->
+	<insert id="insertHisXhInfo" parameterType="XhInfo">
+		INSERT INTO HIS_XHINFO (
+			<include refid="insertHisXhInfoField" />
+		) VALUES (
+			#{phoneNo}, 
+			#{virtualNo},
+			to_date(#{createTime}, 'yyyy-mm-dd hh24:mi:ss'),
+			to_date(#{effectTime}, 'yyyy-mm-dd hh24:mi:ss'),
+			to_date(#{logoffTime}, 'yyyy-mm-dd hh24:mi:ss'),
+			to_date(#{endTime}, 'yyyy-mm-dd hh24:mi:ss'),
+			#{remainSMS}, 
+			#{closeStatus}, 
+			#{closeBegin},
+			#{closeEnd},
+			#{weekday},
+			#{useDays},
+			to_date(#{statusUpdateTime}, 'yyyy-mm-dd hh24:mi:ss')
+		)
+	</insert>
+	
+	<!-- 查询用户信息 -->
+	<select id="selectHisXhInfo" parameterType="java.util.Map" resultType="XhInfo">
+		SELECT * FROM (
+			SELECT T.*, ROWNUM AS RN FROM (
+				SELECT 
+				   PHONENO,
+			       VIRTUALNO,
+			       TO_CHAR(CREATETIME, 'YYYY-MM-DD HH24:MI:SS') CREATETIME,
+			       TO_CHAR(ENDTIME, 'YYYY-MM-DD HH24:MI:SS') ENDTIME,
+			       TO_CHAR(LOGOFFTIME, 'YYYY-MM-DD HH24:MI:SS') LOGOFFTIME
+			   FROM HIS_XHINFO
+			   <where>
+			   		<if test="phoneno != null">
+						AND PHONENO = #{phoneno}
+					</if>
+					<if test="virtualno != null">
+						AND VIRTUALNO = #{virtualno}
+					</if>
+			   </where>
+			   <include refid="orderSql" />
+			) T
+			<if test="maxrownum != null">
+				<where>
+					<![CDATA[ ROWNUM <= #{maxrownum} ]]>
+				</where>
+			</if>
+		)
+		<if test="minrownum != null">
+			<where>
+				<![CDATA[ RN >= #{minrownum} ]]>
+			</where>
+		</if>	
+	</select>
+	
+	<!-- 统计满足条件的记录数 -->
+	<select id="selectHisXhInfoCount" parameterType="map" resultType="int">
+		 SELECT COUNT(*)
+		FROM HIS_XHINFO
+	   <where>
+	   		<if test="phoneno != null">
+				AND PHONENO = #{phoneno}
+			</if>
+			<if test="virtualno != null">
+				AND VIRTUALNO = #{virtualno}
+			</if>
+	   </where>
+	</select>
+</mapper>

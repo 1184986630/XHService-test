@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="OrderInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+	<!-- 查询区域 -->
+	<sql id="queryOrderInfoField">  
+		ORDERID,
+		SALESID,
+		PHONENO,
+		VIRTUALNO,
+		TO_CHAR(CREATETIME, 'YYYY-MM-DD HH24:MI:SS') CREATETIME
+    </sql>
+    
+    <!-- 增加区域 -->
+	<sql id="insertOrderInfoField"> 
+	    ID,
+		ORDERID,
+		SALESID,
+		PHONENO,
+		VIRTUALNO,
+		CREATETIME
+    </sql>
+	
+	<!-- 增加订购信息 -->
+	<insert id="insertOrderInfo" parameterType="OrderInfo">
+		INSERT INTO ORDERINFO (
+			<include refid="insertOrderInfoField" />
+		) VALUES (
+			SEQ_ORDERINFO.nextval,
+			#{orderid},
+			#{salesid},
+			#{phoneno},
+			#{virtualno},
+			sysdate
+		)
+	</insert>
+	
+	<!-- 查询订购信息 -->
+	<select id="selectOrderInfo" parameterType="java.util.Map" resultType="OrderInfo">
+		SELECT
+			<include refid="queryOrderInfoField" />
+		FROM ORDERINFO
+		<where>
+			<if test="orderid != null">
+				AND ORDERID = #{orderid}
+			</if>
+			<if test="salesid != null">
+				AND SALESID = #{salesid}
+			</if>
+			<if test="phoneno != null">
+				AND PHONENO = #{phoneno}
+			</if>
+			<if test="virtualno != null">
+				AND VIRTUALNO = #{virtualno}
+			</if>
+		</where>
+		<include refid="orderSql" />
+	</select>
+</mapper>

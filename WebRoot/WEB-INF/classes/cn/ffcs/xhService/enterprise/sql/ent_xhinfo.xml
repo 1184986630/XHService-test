@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="EntXhInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+    
+	<!-- 增加企业小号信息 -->
+	<insert id="insertEntXhInfo" parameterType="EntXhInfo">
+		INSERT INTO Ent_XhInfo (
+			SPID,
+			APPID,
+	        PHONENO,
+	        VIRTUALNO,
+	        CREATETIME,
+	        PKNBR
+		) VALUES (
+			#{spId},
+			#{appId},
+			#{phoneNo}, 
+			#{virtualNo}, 
+			to_date(#{createTime}, 'yyyy-mm-dd hh24:mi:ss'),
+			#{pkNBR}
+		)
+	</insert>
+	
+	<!-- 查询企业小号信息 -->
+	<select id="selectEntXhInfo" parameterType="java.util.Map" resultType="EntXhInfo">
+		SELECT
+			SPID,
+			APPID,
+			PHONENO,
+			VIRTUALNO,
+			to_char(CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,
+			PKNBR
+		FROM ENT_XHINFO
+		<where>
+			<if test="spid != null">
+				AND SPID = #{spid}
+			</if>
+			<if test="appid != null">
+				AND APPID = #{appid}
+			</if>
+			<if test="phoneno != null">
+				AND PHONENO = #{phoneno}
+			</if>
+			<if test="virtualno != null">
+				AND VIRTUALNO = #{virtualno}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 删除企业小号信息 -->
+	<delete id="deleteEntXhInfo" parameterType="map">
+		DELETE FROM Ent_XhInfo
+		<where>
+			<if test="spid != null">
+				AND SPID = #{spid}
+			</if>
+			<if test="appid != null">
+				AND APPID = #{appid}
+			</if>
+			<if test="phoneno != null">
+				AND PHONENO = #{phoneno}
+			</if>
+			<if test="virtualno != null">
+				AND VIRTUALNO = #{virtualno}
+			</if>
+		</where>
+	</delete>
+	
+	<select id="selectEntXhInfoCount" parameterType="java.util.Map" resultType="int">
+		SELECT COUNT(*) CNT
+		FROM ENT_XHINFO
+		<where>
+			<if test="spid != null">
+				AND SPID = #{spid}
+			</if>
+			<if test="appid != null">
+				AND APPID = #{appid}
+			</if>
+			<if test="phoneno != null">
+				AND PHONENO = #{phoneno}
+			</if>
+			<if test="virtualno != null">
+				AND VIRTUALNO = #{virtualno}
+			</if>
+		</where>
+	</select>
+</mapper>

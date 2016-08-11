@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="XhInfo">
+	<!-- 开启二级缓存 -->
+	<cache eviction="LRU" flushInterval="60000" size="1024" readOnly="true"></cache>
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+    
+    <!-- 增加字段 -->
+	<sql id="insertXhInfoField">
+		APPID,
+        PHONENO, 
+        VIRTUALNO, 
+        CREATETIME,
+        EFFECTTIME,
+        LOGOFFTIME,
+        ENDTIME,
+        REMAINSMS, 
+        CLOSESTATUS, 
+        CLOSEBEGIN,
+        CLOSEEND,
+        WEEKDAY,
+        USEDAYS,
+        STATUSUPDATETIME
+    </sql>
+	
+	<!-- 查询小号信息 -->
+	<select id="selectXhInfo" parameterType="java.util.Map" resultType="XhInfo">
+		SELECT * FROM (
+			SELECT T.*, ROWNUM AS RN FROM (
+				SELECT
+				PHONENO, 
+		        VIRTUALNO, 
+		        to_char(CREATETIME,'yyyy-mm-dd hh24:mi:ss') CREATETIME,
+		        to_char(EFFECTTIME,'yyyy-mm-dd hh24:mi:ss') EFFECTTIME,
+		        to_char(ENDTIME,'yyyy-mm-dd hh24:mi:ss') ENDTIME,
+		        to_char(LOGOFFTIME,'yyyy-mm-dd hh24:mi:ss') LOGOFFTIME,
+		        <choose>
+		        	<when test="sysdate != null">
+		        		<![CDATA[ case when endtime >= to_date(#{sysdate}, 'yyyy-mm-dd hh24:mi:ss') 
+		        			then
+				            	trunc(endtime) - trunc(effecttime) - floor(to_date(#{sysdate}, 'yyyy-mm-dd hh24:mi:ss') - effecttime)
+				           else
+				            	floor(endtime - to_date(#{sysdate}, 'yyyy-mm-dd hh24:mi:ss'))
+				         end REMAINDAYS, ]]>
+		        		
+		        	</when>
+		        	<otherwise>
+		        		-1 REMAINDAYS,
+		        	</otherwise>
+		        </choose>
+		        <choose>
+		        	<when test="sysdate != null">
+		        		floor(to_date(#{sysdate}, 'yyyy-mm-dd hh24:mi:ss') - CREATETIME) USEDAYS,
+		        	</when>
+		        	<otherwise>
+		        		USEDAYS,
+		        	</otherwise>
+		        </choose>
+		        <choose>
+		        	<when test="sysdate != null">
+		        		<![CDATA[ case when endtime >= to_date(#{sysdate}, 'yyyy-mm-dd hh24:mi:ss') 
+		        			then
+				            	REMAINSMS
+				           else
+				            0
+				         end REMAINSMS, ]]>
+		        	</when>
+		        	<otherwise>
+		        		0 REMAINSMS,
+		        	</otherwise>
+		        </choose>
+		        CLOSESTATUS, 
+		        WEEKDAY,
+		        CLOSEBEGIN,
+		        CLOSEEND
+				FROM XHINFO
+				<where>
+					<if test="phoneno != null">
+						AND PHONENO = #{phoneno}
+					</if>
+					<if test="virtualno != null">
+						AND VIRTUALNO = #{virtualno}
+					</if>
+					<if test="logofftime != null">
+						<![CDATA[ AND LOGOFFTIME <= to_date(#{logofftime}, 'yyyy-mm-dd hh24:mi:ss') ]]>
+					</if>
+					<if test="mindatetime != null">
+						<![CDATA[ AND ENDTIME >= to_date(#{mindatetime}, 'yyyy-mm-dd hh24:mi:ss') ]]>
+					</if>
+					<if test="maxdatetime != null">
+						<![CDATA[ AND ENDTIME <= to_date(#{maxdatetime}, 'yyyy-mm-dd hh24:mi:ss') ]]>
+					</if>
+				</where>
+				<include refid="orderSql" />
+			) T
+			<where>
+				<if test="maxrownum != null">
+					<![CDATA[ ROWNUM <= #{maxrownum} ]]>
+				</if>
+			</where>
+		)
+		<where>
+			<if test="minrownum != null">
+				<![CDATA[ RN >= #{minrownum} ]]>
+			</if>
+		</where>
+	
+	</select>
+	
+	<!-- 统计满足条件的记录数 -->
+	<select id="selectXhInfoCount" parameterType="map" resultType="int">
+		 SELECT COUNT(*)
+		FROM XHINFO
+		<where>
+			<if test="phoneno != null">
+				AND PHONENO = #{phoneno}
+			</if>
+			<if test="virtualno != null">
+				AND VIRTUALNO = #{virtualno}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 查询需要开关机设置的小号信息 -->
+	<select id="selectCloseSettingInfo" parameterType="java.util.Map" resultType="XhInfo">
+		SELECT 
+		   PHONENO,
+	       VIRTUALNO,
+	       WEEKDAY,
+	       CLOSESTATUS,
+	       CLOSEBEGIN,
+	       CLOSEEND
+	   FROM XHINFO
+	   <where>
+	   		<if test="mindatetime != null">
+				<![CDATA[ AND ENDTIME > to_date(#{mindatetime}, 'yyyy-mm-dd hh24:mi:ss') ]]>
+			</if>
+			<if test="closestatus != null">
+				AND CLOSESTATUS = #{closestatus}
+			</if>
+			AND WEEKDAY IS NOT NULL
+	   </where>
+	</select>
+	
+	<!-- 增加小号信息 -->
+	<insert id="insertXhInfo" parameterType="XhInfo">
+		INSERT INTO XHINFO (
+			<include refid="insertXhInfoField" />
+		) VALUES (
+			#{appid},
+			#{phoneNo}, 
+			#{virtualNo}, 
+			to_date(#{createTime}, 'yyyy-mm-dd hh24:mi:ss'),
+			to_date(#{effectTime}, 'yyyy-mm-dd hh24:mi:ss'),
+			to_date(#{logoffTime}, 'yyyy-mm-dd hh24:mi:ss'),
+			to_date(#{endTime}, 'yyyy-mm-dd hh24:mi:ss'),
+			#{remainSMS}, 
+			#{closeStatus}, 
+			#{closeBegin},
+			#{closeEnd},
+			#{weekday},
+			#{useDays},
+			to_date(#{statusUpdateTime}, 'yyyy-mm-dd hh24:mi:ss')
+		)
+	</insert>
+	
+	<!-- 修改小号信息 -->
+	<update id="updateXhInfo" parameterType="map">
+		UPDATE XHINFO
+		<set>
+			<if test="effecttime != null">
+				EFFECTTIME = to_date(#{effecttime}, 'yyyy-mm-dd hh24:mi:ss'),
+			</if>
+			<if test="endtime != null">
+				ENDTIME = to_date(#{endtime}, 'yyyy-mm-dd hh24:mi:ss'),
+			</if>
+			<if test="logofftime != null">
+				LOGOFFTIME = to_date(#{logofftime}, 'yyyy-mm-dd hh24:mi:ss'),
+			</if>
+			<if test="remainsms != null">
+				REMAINSMS = #{remainsms},
+			</if>
+			<if test="closestatus != null">
+				CLOSESTATUS = #{closestatus},
+			</if>
+			<if test="closebegin != null">
+				CLOSEBEGIN = #{closebegin},
+			</if>
+			<if test="closeend != null">
+				CLOSEEND = #{closeend},
+			</if>
+			<if test="weekday != null">
+				WEEKDAY = #{weekday},
+			</if>
+			<if test="statusupdatetime != null">
+				STATUSUPDATETIME = to_date(#{statusupdatetime}, 'yyyy-mm-dd hh24:mi:ss'),
+			</if>
+		</set>
+		<where>
+			<if test="phoneno != null">
+				AND PHONENO = #{phoneno}
+			</if>
+			<if test="virtualno != null">
+				AND VIRTUALNO = #{virtualno}
+			</if>
+		</where>
+	</update>
+	
+	<!-- 删除小号信息 -->
+	<delete id="deleteXhInfo" parameterType="map">
+		DELETE FROM XHINFO
+		<where>
+			<if test="phoneno != null">
+				AND PHONENO = #{phoneno}
+			</if>
+			<if test="virtualno != null">
+				AND VIRTUALNO = #{virtualno}
+			</if>
+		</where>
+	</delete>
+	
+	<!-- 查询销号提醒的小号信息 -->
+	<select id="selectXhCloseNoticeInfo" parameterType="java.util.Map" resultType="XhInfo">
+		SELECT
+		   PHONENO,
+	       VIRTUALNO,
+	       TO_CHAR(trunc(LOGOFFTIME)+1,'YYYY-MM-DD') LOGOFFTIME,
+	       TRUNC(LOGOFFTIME)-TRUNC(TO_DATE(#{sysdate}, 'yyyy-mm-dd hh24:mi:ss'))+1 REMAINDAYS
+	    FROM XHINFO
+	    <where>
+	    	<if test="sysdate != null">
+	    		<![CDATA[ AND ENDTIME < to_date(#{sysdate}, 'yyyy-mm-dd hh24:mi:ss') ]]>
+	    	</if>
+	    	<if test="begintime != null">
+	    		<![CDATA[ AND LOGOFFTIME >= to_date(#{begintime}, 'yyyy-mm-dd hh24:mi:ss') ]]>
+	    	</if>
+	    	<if test="endtime != null">
+	    		<![CDATA[ AND LOGOFFTIME <= to_date(#{endtime}, 'yyyy-mm-dd hh24:mi:ss') ]]>
+	    	</if>
+	    </where>
+	</select>
+	
+	<!-- 查询昨天过期的小号信息 -->
+	<select id="selectXhExpireInfo" parameterType="java.util.Map" resultType="XhInfo">
+		SELECT
+		   PHONENO,
+	       VIRTUALNO,
+           CLOSEBEGIN,
+           CLOSEEND
+	    FROM XHINFO
+	    <where>
+	    	<if test="nowdate != null">
+	    		<![CDATA[ 
+	    			AND ENDTIME >= TO_DATE(#{nowdate}, 'YYYY-MM-DD') - 1
+	    			AND ENDTIME < TO_DATE(#{nowdate}, 'YYYY-MM-DD')
+	    		]]>
+	    	</if>
+	    	<if test="closestatus != null">
+	    		AND CLOSESTATUS != #{closestatus}
+	    	</if>
+	    </where>
+	</select>
+	
+	<!-- 更新过期小号状态 -->
+	<update id="updateExpireCloseStatus" parameterType="map">
+		UPDATE XHINFO
+		<set>
+			<if test="closestatus != null">
+				CLOSESTATUS = #{closestatus},
+			</if>
+			<if test="statusupdatetime != null">
+				STATUSUPDATETIME = to_date(#{statusupdatetime}, 'yyyy-mm-dd hh24:mi:ss'),
+			</if>
+		</set>
+		<where>
+			<if test="nowdate != null">
+	    		AND TRUNC(ENDTIME) = TO_DATE(#{nowdate}, 'YYYY-MM-DD') - 1
+	    	</if>
+	    	<if test="closestatus != null">
+	    		AND CLOSESTATUS != #{closestatus}
+	    	</if>
+		</where>
+	</update>
+	
+	<!-- 查询过期一天的小号信息 -->
+	<select id="selectXhExpireOneDayInfo" parameterType="java.util.Map" resultType="XhInfo">
+		SELECT
+		   PHONENO,
+	       VIRTUALNO,
+           TO_CHAR(LOGOFFTIME, 'YYYY-MM-DD') LOGOFFTIME
+	    FROM XHINFO
+	    <where>
+	    	<if test="nowdate != null">
+	    		<![CDATA[ AND ENDTIME >= TO_DATE(#{nowdate}, 'YYYY-MM-DD') - 1 ]]>
+	    	</if>
+	    	<if test="nowdate != null">
+	    		<![CDATA[ AND ENDTIME < TO_DATE(#{nowdate}, 'YYYY-MM-DD') ]]>
+	    	</if>
+	    </where>
+	</select>
+</mapper>

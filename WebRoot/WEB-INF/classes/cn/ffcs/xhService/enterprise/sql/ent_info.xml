@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="EntInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+	<!-- 增加企业小号信息 -->
+	<insert id="insertEntInfo" parameterType="EntInfo">
+		  INSERT INTO ENT_INFO (
+		  	SPID,
+			APPID,
+			SPNAME,
+			PAYTYPE,
+			CREDITS,
+			CREATETIME,
+			REDTHRESHOLD,
+			YELLOWTHRESHOLD,
+			CAASTHRESHOLD,
+			DIALDISCOUNT,
+			SMSDISCOUNT,
+			USEDFEEDISCOUNT,
+			ANSWERDISCOUNT,
+			BUSINESSLINKNO,
+			ENTLINKNO
+		  )
+		  VALUES (
+		  	#{spId},
+			#{appId},
+			#{spName},
+			#{payType},
+			#{credits},
+			to_date(#{createTime}, 'YYYY-MM-DD HH24:MI:SS'),
+			#{redThreshold},
+			#{yellowThreshold},
+			#{caasThreshold},
+			#{dialDiscount},
+			#{smsDiscount},
+			#{usedFeeDiscount},
+			#{answerDiscount},
+			#{businessLinkno},
+			#{entLinkno}
+		  )
+	</insert>
+	
+	<!-- 修改企业信息 -->
+	<update id="updateEntInfo" parameterType="map">
+		UPDATE ENT_INFO
+		<set>
+			<if test="fee != null">
+				ACCOUNT = ACCOUNT-#{fee},
+			</if>
+			<if test="status != null">
+				STATUS = #{status},
+			</if>
+			<if test="pushstatus != null">
+				PUSHSTATUS = #{pushstatus},
+			</if>
+		</set>
+		<where>
+			<if test="spid != null">
+				AND SPID = #{spid}
+			</if>
+			<if test="appid != null">
+				AND APPID = #{appid}
+			</if>
+		</where>
+	</update>
+	
+	<!-- 查询企业信息 -->
+	<select id="selectEntInfo" parameterType="java.util.Map" resultType="EntInfo">
+		SELECT 
+		 	SPID,
+			APPID,
+			PWD,
+			SPNAME,
+			PAYTYPE,
+			ACCOUNT ACCOUNT,
+			CREDITS CREDITS,
+			STATUS,
+			REDTHRESHOLD REDTHRESHOLD,
+			YELLOWTHRESHOLD YELLOWTHRESHOLD,
+			DIALDISCOUNT,
+			ANSWERDISCOUNT,
+			SMSDISCOUNT,
+			USEDFEEDISCOUNT,
+			BUSINESSLINKNO,
+			ENTLINKNO
+		FROM ENT_INFO
+		<where>
+			<if test="spid != null">
+				AND SPID = #{spid}
+			</if>
+			<if test="appid != null">
+				AND APPID = #{appid}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 计算企业号码占用费 -->
+	<select id="selectEntUsedFeeInfo" parameterType="java.util.Map" resultType="EntUsedFeeInfo">
+		SELECT A.SPID,
+	       A.APPID,
+	       A.PHONENO,
+	       A.VIRTUALNO,
+	       ROUND(B.USEDFEEDISCOUNT * C.USEDFEE / 100) USEDFEE
+  		FROM ENT_XHINFO A, ENT_INFO B, ENT_PACKAGEINFO C
+		<where>
+			AND A.SPID = B.SPID
+		    AND A.APPID = B.APPID
+		    AND A.PKNBR = C.PKNBR
+			<if test="curmonth != null">
+				<![CDATA[ AND A.CREATETIME < TO_DATE(#{curmonth},'YYYY-MM') ]]>
+			</if>
+			<include refid="orderSql" />
+		</where>
+	</select>
+</mapper>

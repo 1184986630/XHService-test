@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="EntHisXhInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+    
+    <!-- 增加字段 -->
+	<sql id="insertEntHisXhInfoField">
+		SPID,
+		APPID,
+        PHONENO,
+        VIRTUALNO,
+        CREATETIME
+    </sql>
+	
+	<!-- 增加企业小号历史信息 -->
+	<insert id="insertEntHisXhInfo" parameterType="EntXhInfo">
+		INSERT INTO ENT_HIS_XHINFO (
+			<include refid="insertEntHisXhInfoField" />
+		) VALUES (
+			#{spId},
+			#{appId},
+			#{phoneNo}, 
+			#{virtualNo}, 
+			to_date(#{createTime}, 'yyyy-mm-dd hh24:mi:ss')
+		)
+	</insert>
+	
+</mapper>

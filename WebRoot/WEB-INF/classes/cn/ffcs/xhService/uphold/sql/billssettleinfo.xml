@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="BillsSettleInfo">
+	<!-- 开启二级缓存 -->
+	<cache eviction="LRU" flushInterval="60000" size="1024" readOnly="true"></cache>
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+	<!-- 查询区域 -->
+	<sql id="querySettleInfoField">  
+		PHONENO,	
+		VIRTUALNO,
+		MONTH,	
+		DAILTOTAL, 	
+		DIALTIMES,	
+		ANSWERTOTAL, 
+		ANSWERTIMES,
+		SMSTOTAL
+    </sql>
+    
+    <!-- 增加区域 -->
+	<sql id="insertSettleInfoField"> 
+		ID,
+		PHONENO,	
+		VIRTUALNO,
+		MONTH,	
+		DAILTOTAL, 	
+		DIALTIMES,	
+		ANSWERTOTAL, 
+		ANSWERTIMES,
+		SMSTOTAL
+    </sql>
+    
+	<!-- 增加月结通信账单 -->
+	<insert id="insertBillsSettleInfo" parameterType="BillsSettleInfo">
+		INSERT INTO BILLSSETTLEINFO (
+			<include refid="insertSettleInfoField" />
+		) VALUES (
+			SEQ_billssettleinfo.nextval,
+			#{phoneno},	
+			#{virtualno},
+			#{month},	
+			#{dailtotal}, 	
+			#{dialtimes},	
+			#{answertotal}, 
+			#{answertimes},
+			#{smstotal}
+		)
+	</insert>
+	
+	<!-- 查询月结账单 -->
+	<select id="selectBillsSettleInfo" parameterType="java.util.Map" resultType="BillsSettleInfo">
+		SELECT PHONENO,
+	       VIRTUALNO,
+	       MONTH,
+	       SUM(DAILTOTAL) DAILTOTAL,
+	       SUM(DIALTIMES) DIALTIMES,
+	       SUM(ANSWERTOTAL) ANSWERTOTAL,
+	       SUM(ANSWERTIMES) ANSWERTIMES,
+	       SUM(SMSTOTAL) SMSTOTAL
+	  FROM (
+			SELECT
+			   PHONENO,
+		       VIRTUALNO,
+		       SUBSTR(MONTH, 0, 4) || '-' || SUBSTR(MONTH, 5, 2) MONTH,
+		       DAILTOTAL,
+		       DIALTIMES,
+		       ANSWERTOTAL,
+		       ANSWERTIMES,
+		       SMSTOTAL
+			FROM BILLSSETTLEINFO
+			<where>
+				<if test="phoneno != null">
+					AND PHONENO = #{phoneno}
+				</if>
+				<if test="virtualno != null">
+					AND VIRTUALNO = #{virtualno}
+				</if>
+				<if test="startmonth != null">
+					<![CDATA[ AND MONTH >= #{startmonth} ]]>
+				</if>
+				<if test="endmonth != null">
+					<![CDATA[ AND MONTH <= #{endmonth} ]]>
+				</if>
+			</where>
+			
+			
+			UNION ALL
+			
+			
+			SELECT PHONENO,
+		       VIRTUALNO,
+		       SUBSTR(MONTH, 0, 4) || '-' || SUBSTR(MONTH, 5, 2) MONTH,
+		       CASE CALLTYPE WHEN 1 THEN SUM(USECOUNT) ELSE 0 END DAILTOTAL,
+		       CASE CALLTYPE WHEN 1 THEN COUNT(*) ELSE 0 END DIALTIMES,
+		       CASE CALLTYPE WHEN 2 THEN SUM(USECOUNT) ELSE 0 END ANSWERTOTAL,
+		       CASE CALLTYPE WHEN 2 THEN COUNT(*) ELSE 0 END ANSWERTIMES,
+		       CASE CALLTYPE WHEN 3 THEN SUM(USECOUNT) ELSE 0 END SMSTOTAL
+	  		FROM BILLSINFO
+			<where>
+				<if test="phoneno != null">
+					AND PHONENO = #{phoneno}
+				</if>
+				<if test="virtualno != null">
+					AND VIRTUALNO = #{virtualno}
+				</if>
+				<if test="curmonth != null">
+					AND MONTH = #{curmonth}
+				</if>
+				<if test="calltypelimit != null">
+					<![CDATA[ AND CALLTYPE <= #{calltypelimit} ]]>
+				</if>
+			</where>
+			GROUP BY PHONENO, VIRTUALNO, MONTH, CALLTYPE
+	  ) GROUP BY PHONENO, VIRTUALNO, MONTH
+	  <include refid="orderSql" />
+	</select>
+</mapper>
