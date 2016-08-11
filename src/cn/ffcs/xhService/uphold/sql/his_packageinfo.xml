@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="HisPackageInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+    <!-- 套餐增加字段 -->
+	<sql id="insertHisPackageInfoField">
+        SALESID, 
+        SALESTYPE, 
+        SMSAMOUNT, 
+        USEDAYS, 
+        SALESNAME, 
+        SALESDESC, 
+        FEE,
+        CREATETIME
+    </sql>
+	
+	<!-- 增加套餐 -->
+	<insert id="insertHisPackageInfo" parameterType="PackageInfo">
+		INSERT INTO HIS_PACKAGEINFO (
+			<include refid="insertHisPackageInfoField" />
+		) VALUES (
+			#{salesId}, 
+	        #{salesType}, 
+	        #{SMSAmount}, 
+	        #{useDays}, 
+	        #{salesName}, 
+	        #{salesDesc}, 
+	        #{fee},
+	        to_date(#{createTime}, 'yyyy-mm-dd hh24:mi:ss')
+		)
+	</insert>
+</mapper>

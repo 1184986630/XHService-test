@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="MessageInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+	<!-- 查询区域 -->
+	<sql id="queryMessageInfoField">
+		MESSAGEID,
+        PHONENO, 
+        VIRTUALNO, 
+        CALLNO,
+        to_char(RECORDTIME, 'YYYY-MM-DD HH24:MI:SS') RECORDTIME,
+        URL,
+        ISREAD
+    </sql>
+    
+    <!-- 增加区域 -->
+    <sql id="insertMessageInfoField"> 
+    	MESSAGEID,
+    	SESSIONID,
+        PHONENO,
+        VIRTUALNO,
+        CALLNO,
+        URL,
+        RECORDTIME,
+        ISREAD,
+        MODIFYTIME
+    </sql>
+	
+	<!-- 查询留言 -->
+	<select id="selectMessageInfo" parameterType="java.util.Map" resultType="MessageInfo">
+		SELECT
+			<include refid="queryMessageInfoField" />
+		FROM MESSAGEINFO
+		<where>
+			<if test="phoneno != null">
+				AND PHONENO = #{phoneno}
+			</if>
+			<if test="virtualno != null">
+				AND VIRTUALNO = #{virtualno}
+			</if>
+			<if test="callno != null">
+				AND CALLNO = #{callno}
+			</if>
+			<if test="isread != null">
+				AND ISREAD = #{isread}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 增加留言 -->
+	<insert id="insertMessageInfo" parameterType="MessageInfo">
+		INSERT INTO MESSAGEINFO (
+			<include refid="insertMessageInfoField" />
+		) VALUES (
+			SEQ_MESSAGEINFO.nextval,
+			#{sessionId},
+			#{phoneNo}, 
+	        #{virtualNo}, 
+	        #{callNo},
+	        #{url},
+	        sysdate,
+	        #{isRead},
+	        #{modifyTime}
+		)
+	</insert>
+	
+	<!-- 更新留言 -->
+	<update id="updateMessageInfo" parameterType="map">
+		UPDATE MESSAGEINFO
+		<set>
+			<if test="isread != null">
+				ISREAD = #{isread},
+			</if>
+		</set>
+		<where>
+			<if test="phoneno != null">
+				AND PHONENO = #{phoneno}
+			</if>
+			<if test="virtualno != null">
+				AND VIRTUALNO = #{virtualno}
+			</if>
+			<if test="messageid != null">
+				AND MESSAGEID = #{messageid}
+			</if>
+		</where>
+	</update>
+	
+	<!-- 修改账单明细 -->
+	<update id="updateMessageInfoPhoneno" parameterType="map">
+		UPDATE MESSAGEINFO A
+		<set>
+			PHONENO = (SELECT B.PHONENO
+                      FROM XHINFO B
+                     WHERE B.VIRTUALNO = A.VIRTUALNO)
+		</set>
+		<where>
+			EXISTS (SELECT 1 FROM XHINFO B WHERE B.VIRTUALNO = A.VIRTUALNO) AND A.PHONENO IS NULL
+			
+			<if test="starttime != null">
+				<![CDATA[ AND A.RECORDTIME >= TO_DATE(#{starttime}, 'YYYY-MM-DD HH24:MI:SS') ]]>
+			</if>
+			<if test="endtime != null">
+				<![CDATA[ AND A.RECORDTIME <= TO_DATE(#{endtime}, 'YYYY-MM-DD HH24:MI:SS') ]]>
+			</if>
+		</where>
+	</update>
+</mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="HttpStatusInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+	<!-- 增加 -->
+	<insert id="insertHttpStatusInfo" parameterType="HttpStatusInfo">
+		INSERT INTO HTTPSTATUSINFO (
+			VTYPE,
+			VSERVICETYPE,
+			VSESSIONSID,
+			VCALLERNBR,
+			VCALLEENBR,
+			VCALLSTATE,
+			VISINCOMINGCALL,
+			VISTRANSFER,
+			VSTATETIME,
+			VREASON,
+			CALLERNO,
+			CALLEDNO,
+			CREATETIME
+		) VALUES (
+			#{vType},
+			#{vServiceType},
+			#{vSessionsId},
+			#{vCallerNbr},
+			#{vCalleeNbr},
+			#{vCallState},
+			#{vIsincomingcall},
+			#{vIstransfer},
+			to_date(#{vStateTime}, 'YYYYMMDDHH24MISS'),
+			#{vReason},
+			#{callerno},
+			#{calledno},
+			to_date(#{createtime}, 'YYYY-MM-DD HH24:MI:SS')
+		)
+	</insert>
+	
+</mapper>

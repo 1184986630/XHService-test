@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="EntCommunicationInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+	<!-- 增加通信账单 -->
+	<insert id="insertEntCommunicationInfo" parameterType="EntCommunicationInfo">
+		INSERT INTO ENT_COMMUNICATIONINFO (
+			ID,
+			SESSIONID,
+			BILLTYPE, 
+			CHARGENBR,
+			DISPLAYNBR,
+			CALLERNBR,
+			CALLEDNBR,
+			STARTTIME,
+			ENDTIME,
+			BILLSUBTYPE,
+			DURATION,
+			POINTS,
+			CALLERNO,
+			CALLEDNO
+		) VALUES (
+			SEQ_ENTCOMMUNICATIONINFO.NEXTVAL,
+			#{sessionid}, 
+			#{billtype}, 
+			#{chargenbr},
+			#{displaynbr},
+			#{callernbr},
+			#{callednbr},
+			to_date(#{starttime}, 'yyyymmddhh24miss'),
+			to_date(#{endtime}, 'yyyymmddhh24miss'),
+			#{billsubtype},
+			#{duration},
+			#{points},
+			#{callerno},
+			#{calledno}
+		)
+	</insert>
+</mapper>

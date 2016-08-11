@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="PhoneHdInfo">
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+	<!-- 查询号段信息 -->
+	<select id="selectPhoneHdInfo" parameterType="java.util.Map" resultType="PhoneHdInfo">
+		SELECT 
+		   PHONENO,
+	       ROUTINGCODE,
+	       CREATETIME
+	   FROM PHONEHDINFO
+	   <where>
+	   		<if test="phoneNo != null">
+				AND PHONENO = #{phoneno}
+			</if>
+			<if test="routingCode != null">
+				AND ROUTINGCODE = #{routingCode}
+			</if>
+			<if test="sysdate != null">
+				<![CDATA[ 
+					AND CREATETIME >= TO_DATE(#{sysdate},'yyyy-mm-dd') AND CREATETIME < (TO_DATE(#{sysdate}, 'yyyy-mm-dd') + 1)
+				]]>
+			</if>
+	   </where>
+	</select>
+	
+</mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="EntBillUrlInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+	<!-- 表字段 -->
+	<sql id="entBillUrlInfoField">
+        CREATETIME,
+		URL,
+		FLAG
+    </sql>
+    
+	<!-- 增加文件url信息 -->
+	<insert id="insertEntBillUrlInfo" parameterType="EntBillUrlInfo">
+		INSERT INTO ENT_BILLURLINFO (
+			<include refid="entBillUrlInfoField" />
+		) VALUES (
+			to_date(#{createtime}, 'YYYY-MM-DD HH24:MI:SS'),
+			#{url},
+			#{flag}
+		)
+	</insert>
+	
+	<!-- 查询 -->
+	<select id="selectEntBillUrlInfo" parameterType="java.util.Map" resultType="EntBillUrlInfo">
+		SELECT
+			<include refid="entBillUrlInfoField" />
+		FROM ENT_BILLURLINFO
+		<where>
+			<if test="url != null">
+				AND URL = #{url}
+			</if>
+			<if test="flag != null">
+				AND FLAG = #{flag}
+			</if>
+		</where>
+		<include refid="orderSql" />
+	</select>
+</mapper>

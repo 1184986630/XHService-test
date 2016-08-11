@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="TsAssetInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	<!-- 查询区域 -->
+	<sql id="queryTsAssetInfoField">
+		TS_ASSET_ID,
+		TS_ASSET_TXM,
+		TS_ASSET_NAME,
+		TB_TYPE_ID,
+		TS_ASSET_TYPE_ID,
+		TS_ASSET_PRICE,
+		TS_ASSET_COUNT,
+		TB_LY_ID,
+		TS_ASSET_JL_ID,
+		to_char(TS_ASSET_DDATE, 'YYYY-MM-DD HH24:MI:SS') TS_ASSET_DDATE,
+		TS_ASSET_CUSER,
+		TS_ASSET_USER_BZ,
+		TS_ASSET_TYPE,
+		TS_ASSET_PZ,
+		TS_PLACE_ID,
+		TS_ASSET_ZT,
+		TS_ASSET_USER_COUNT,
+		TS_ASSET_YJ_PRICE,
+		TS_ASSET_YEAR,
+		TB_ASSET_ZJ_TYPE,
+		TS_ASSET_BZ,
+		TS_CUSER,
+		to_char(TS_CDATE, 'YYYY-MM-DD HH24:MI:SS') TS_CDATE,
+		TS_ASSET_QY,
+		TS_PROVINCE_BM,
+		TS_COUNTRY_BM,
+		TS_TDY1,
+		TS_TDY2,
+		TS_TDY3,
+		TS_TDY4,
+		TS_TDY5,
+		TS_TDY6,
+		TS_TDY7,
+		TS_TDY8,
+		TS_TDY9,
+		TS_TDY10,
+		TS_THH,
+		TS_IT_QD,
+		TS_ASSET_NAME_FOR_CPT
+	</sql>
+
+	<!-- 查询店铺-->
+	<select id="selectTsAssetInfo" parameterType="java.util.Map" resultType="TsAssetInfo">
+		SELECT
+			<include refid="queryTsAssetInfoField" />
+		FROM TsAssetInfo
+		<where>
+			<if test="phoneno != null">
+				AND PHONENO = #{phoneno}
+			</if>
+		</where>
+	</select>
+</mapper>

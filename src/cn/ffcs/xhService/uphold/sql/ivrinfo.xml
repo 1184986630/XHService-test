@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="IvrInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+    <!-- 增加区域 -->
+	<sql id="insertIvrInfoField">
+		VSESSIONID,
+		VTYPE,
+		VCALLERNBR, 
+		VCALLEDNBR,
+		STATE,
+		CREATETIME,
+		CALLERNO,
+		CALLEDNO
+    </sql>
+	
+	<!-- 增加通信账单 -->
+	<insert id="insertIvrInfo" parameterType="IvrInfo">
+		INSERT INTO IVRINFO (
+			<include refid="insertIvrInfoField" />
+		) VALUES (
+			#{vsessionid},
+			#{vtype},
+			#{vcallernbr}, 
+			#{vcallednbr},
+			#{state},
+			TO_DATE(#{createtime},'YYYY-MM-DD HH24:MI:SS'),
+			#{callerno},
+			#{calledno}
+		)
+	</insert>
+</mapper>

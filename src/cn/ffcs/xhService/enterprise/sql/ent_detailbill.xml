@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="EntDetailBillInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+    
+	<!-- 增加企业账单明细信息 -->
+	<insert id="insertEntDetailBillInfo" parameterType="EntDetailBillInfo">
+		INSERT INTO ENT_DETAILBILL (
+			ID,
+			SPID,
+			APPID,
+			PHONENO,
+			VIRTUALNO,
+			CALLEDNO,
+			CALLTYPE,
+			BEGINTIME,
+			ENDTIME,
+			USECOUNT,
+			FEE,
+			VUSECOUNT
+		) VALUES (
+			SEQ_ENTDETAILBILL.NEXTVAL,
+			#{spId},
+			#{appId},
+			#{phoneNo},
+			#{virtualNo},
+			#{calledNo},
+			#{callType},
+			TO_DATE(#{beginTime}, 'yyyymmddhh24miss'),
+			TO_DATE(#{endTime}, 'yyyymmddhh24miss'),
+			#{useCount},
+			#{fee},
+			#{vuseCount}
+		)
+	</insert>
+	
+	<!-- 查询账单明细 -->
+	<select id="selectEntDetailBillInfo" parameterType="java.util.Map" resultType="EntDetailBillInfo">
+		SELECT *
+		  FROM (
+	  		SELECT A.*, ROWNUM AS RN
+	          FROM (
+          		SELECT
+          		     PHONENO,
+                     VIRTUALNO,
+                     CALLEDNO,
+                     CALLTYPE,
+                     TO_CHAR(BEGINTIME, 'YYYY-MM-DD HH24:MI:SS') BEGINTIME,
+                     VUSECOUNT USECOUNT,
+                     FEE
+                 FROM ENT_DETAILBILL
+                 <where>
+                 	<if test="spid != null">
+						AND SPID = #{spid}
+					</if>
+					<if test="appid != null">
+						AND APPID = #{appid}
+					</if>
+					<if test="phoneno != null">
+						AND PHONENO = #{phoneno}
+					</if>
+					<if test="virtualno != null">
+						AND VIRTUALNO = #{virtualno}
+					</if>
+					<if test="calltypes != null">
+						AND CALLTYPE IN
+						<foreach collection="calltypes" item="calltype" open="(" separator="," close=")">
+							#{calltype}
+						</foreach>
+					</if>
+					<if test="month != null">
+						<![CDATA[ 
+							AND BEGINTIME >= to_date(#{month}, 'yyyy-mm')
+							AND BEGINTIME < add_months(to_date(#{month}, 'yyyy-mm'),1)	
+						]]>
+					</if>
+                 </where>
+                 <include refid="orderSql" />
+            ) A
+         	<where>
+				<if test="maxrownum != null">
+					<![CDATA[ ROWNUM <= #{maxrownum} ]]>
+				</if>
+			</where>
+	     )
+		<where>
+			<if test="minrownum != null">
+				<![CDATA[ RN >= #{minrownum} ]]>
+			</if>
+		</where>
+	</select>
+	
+	<!-- 统计满足条件的记录数 -->
+	<select id="selectEntDetailBillInfoCount" parameterType="map" resultType="int">
+		 SELECT COUNT(*)
+		FROM ENT_DETAILBILL
+		<where>
+			<if test="spid != null">
+				AND SPID = #{spid}
+			</if>
+			<if test="appid != null">
+				AND APPID = #{appid}
+			</if>
+			<if test="phoneno != null">
+				AND PHONENO = #{phoneno}
+			</if>
+			<if test="virtualno != null">
+				AND VIRTUALNO = #{virtualno}
+			</if>
+			<if test="calltypes != null">
+				AND CALLTYPE IN
+				<foreach collection="calltypes" item="calltype" open="(" separator="," close=")">
+					#{calltype}
+				</foreach>
+			</if>
+			<if test="month != null">
+				<![CDATA[ 
+					AND BEGINTIME >= to_date(#{month}, 'yyyy-mm') 
+					AND BEGINTIME < add_months(to_date(#{month}, 'yyyy-mm'),1)	
+				]]>
+			</if>
+		</where>
+	</select>
+</mapper>

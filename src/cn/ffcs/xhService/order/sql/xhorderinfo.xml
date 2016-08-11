@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="XhOrderInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+	<!-- 查询小号订单信息 -->
+	<select id="selectXhOrderInfo" parameterType="map" resultType="XhOrderInfo">
+		SELECT
+		*
+		FROM XH_ORDER_INFO
+		<where>
+			<if test="orderid != null">
+				and ORDER_ID = #{orderid}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 查询是否含有该订单 -->
+	<select id="selectXhOrderInfoCount" parameterType="map" resultType="int">
+		SELECT COUNT(*)
+		FROM XH_ORDER_INFO
+		<where>
+			<if test="orderid != null">
+				and ORDER_ID = #{orderid}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 将订单状态设置为“支付中” -->
+	<update id="updateOrderPayStatusInfo" parameterType="map">
+		UPDATE XH_ORDER_INFO
+		<set>
+				ORDER_STATUS = #{paying}
+		</set>
+		<where>
+			<if test="orderid != null">
+				AND ORDER_ID = #{orderid}
+			</if>
+		</where>
+	</update>
+	
+</mapper>

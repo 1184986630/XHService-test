@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="BillsInfo">
+	<!-- 开启二级缓存 -->
+	<cache eviction="LRU" flushInterval="60000" size="1024" readOnly="true"></cache>
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+	
+	<!-- 查询区域 -->
+	<sql id="queryBillsInfoField">
+		ID, 
+		PHONENO,
+		VIRTUALNO,
+		MONTH,
+		CALLEDNO,
+		CALLTYPE,
+		to_char(BEGINTIME, 'YYYY-MM-DD HH24:MI:SS') BEGINTIME,
+		to_char(ENDTIME, 'YYYY-MM-DD HH24:MI:SS') ENDTIME,
+		USECOUNT
+    </sql>
+    
+    <!-- 增加区域 -->
+	<sql id="insertBillsInfoField"> 
+		ID,
+		PHONENO,
+		VIRTUALNO,
+		CALLEDNO,
+		CALLTYPE,
+		MONTH,
+		BEGINTIME,
+		ENDTIME,
+		USECOUNT
+    </sql>
+    
+	<!-- 增加账单 -->
+	<insert id="insertBillsInfo" parameterType="BillsInfo">
+		INSERT INTO BILLSINFO (
+			<include refid="insertBillsInfoField" />
+		) VALUES (
+			SEQ_billsinfo.nextval,
+			#{phoneNo},
+			#{virtualNo},
+			#{calledNo},
+			#{callType},
+			#{month},
+			to_date(#{beginTime}, 'YYYY-MM-DD HH24:MI:SS'),
+			to_date(#{endTime}, 'YYYY-MM-DD HH24:MI:SS'),
+			#{useCount}
+		)
+	</insert>
+	
+	<!-- 查询账单明细 -->
+	<select id="selectBillsInfo" parameterType="java.util.Map" resultType="BillsInfo">
+		SELECT * FROM (
+			SELECT A.*,ROWNUM AS RN FROM (
+				SELECT
+					<include refid="queryBillsInfoField" />
+				FROM BILLSINFO
+				<where>
+					<if test="phoneno != null">
+						AND PHONENO = #{phoneno}
+					</if>
+					<if test="virtualno != null">
+						AND VIRTUALNO = #{virtualno}
+					</if>
+					<if test="month != null">
+						AND MONTH = #{month}
+					</if>
+					<if test="calltypelimit != null">
+						<![CDATA[ AND CALLTYPE <= #{calltypelimit} ]]>
+					</if>
+					<if test="calltype != null">
+						AND CALLTYPE = #{calltype}
+					</if>
+					<if test="flag != null">
+						AND FLAG = #{flag}
+					</if>
+				</where>
+			) A
+			<if test="maxrownum != null">
+				<where>
+					<![CDATA[ AND ROWNUM <=  #{maxrownum} ]]>
+				</where>
+			</if>
+		)
+		<where>
+			<if test="minrownum != null">
+				<![CDATA[ AND RN >=  #{minrownum} ]]>
+			</if>
+		</where>
+		<include refid="orderSql" />
+	</select>
+	
+	<!-- 统计满足条件的记录数 -->
+	<select id="selectBillsInfoCount" parameterType="map" resultType="int">
+		 SELECT COUNT(*)
+		FROM BILLSINFO
+		<where>
+			<if test="phoneno != null">
+				AND PHONENO = #{phoneno}
+			</if>
+			<if test="virtualno != null">
+				AND VIRTUALNO = #{virtualno}
+			</if>
+			<if test="month != null">
+				AND MONTH = #{month}
+			</if>
+			<if test="calltypelimit != null">
+				<![CDATA[ AND CALLTYPE <= #{calltypelimit} ]]>
+			</if>
+			<if test="calltype != null">
+				AND CALLTYPE = #{calltype}
+			</if>
+			<if test="flag != null">
+				AND FLAG = #{flag}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 通话记录查询 -->
+	<select id="selectCallRecordsInfo" parameterType="java.util.Map" resultType="CallRecordsInfo">
+		SELECT * FROM (
+			SELECT A.*,ROWNUM AS RN FROM (
+				SELECT 
+				   A.ID,
+				   A.PHONENO,
+			       A.VIRTUALNO,
+			       A.CALLEDNO,
+			       A.CALLTYPE,
+			       A.BEGINTIME,
+			       A.USECOUNT,
+			       B.AREA
+			  	FROM (
+			  		SELECT
+			  			ID,
+			  			PHONENO,
+			            VIRTUALNO,
+			            CALLEDNO,
+			            CALLTYPE,
+			            TO_CHAR(BEGINTIME, 'YYYY-MM-DD HH24:MI:SS') BEGINTIME,
+			            USECOUNT
+			         FROM BILLSINFO
+			         <where>
+						<if test="phoneno != null">
+							AND PHONENO = #{phoneno}
+						</if>
+						<if test="virtualno != null">
+							AND VIRTUALNO = #{virtualno}
+						</if>
+						<if test="lasttime != null">
+							<![CDATA[ AND BEGINTIME > TO_DATE(#{lasttime}, 'YYYY-MM-DD HH24:MI:SS') ]]>
+						</if>
+						<if test="calltypes != null">
+							AND CALLTYPE IN
+							<foreach collection="calltypes" item="calltype" open="(" separator="," close=")">
+								#{calltype}
+							</foreach>
+						</if>
+						<if test="flag != null">
+							AND FLAG = #{flag}
+						</if>
+					</where>
+				) A,
+			    PHONEHDINFO B
+			    <where>
+			    	AND SUBSTR(A.CALLEDNO, 0, 7) = B.PHONENO(+)
+			    </where>
+			 	<include refid="orderSql" />
+			) A
+			<if test="maxrownum != null">
+				<where>
+					<![CDATA[ AND ROWNUM <=  #{maxrownum} ]]>
+				</where>
+			</if>
+		)
+		<where>
+			<if test="minrownum != null">
+				<![CDATA[ AND RN >=  #{minrownum} ]]>
+			</if>
+		</where>
+	</select>
+	
+	<!-- 账单更新 -->
+	<update id="updateBillsInfo" parameterType="map">
+		UPDATE BILLSINFO
+		<set>
+			<if test="flag != null">
+				FLAG = #{flag},
+			</if>
+		</set>
+		<where>
+			<if test="phoneno != null">
+				AND PHONENO = #{phoneno}
+			</if>
+			<if test="virtualno != null">
+				AND VIRTUALNO = #{virtualno}
+			</if>
+			<if test="ids != null">
+				AND ID IN
+				<foreach collection="ids" item="id" open="(" separator="," close=")">
+					#{id}
+				</foreach>
+			</if>
+			<if test="calltypes != null">
+				AND CALLTYPE IN
+				<foreach collection="calltypes" item="calltype" open="(" separator="," close=")">
+					#{calltype}
+				</foreach>
+			</if>
+		</where>
+	</update>
+	
+	<!-- 执行存储过程，更新未接来电账单  -->
+	<update id="updateMissedBillsData" parameterMap="updateProMissedBillsInfoMap" statementType="CALLABLE">
+		call ora_pro_update_bills_data(#{v_pre_time}, #{v_now_time})
+	</update>
+	
+	<!-- 未接来电账单参数 -->
+	<parameterMap type="java.util.Map" id="updateProMissedBillsInfoMap">
+		<parameter property="v_pre_time" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN" />
+		<parameter property="v_now_time" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN" />
+	</parameterMap>
+	
+	<insert id="insertMissedCallBillsInfo" parameterType="map">
+		INSERT INTO BILLSINFO (
+			ID,
+		    PHONENO,
+		    VIRTUALNO,
+		    CALLEDNO,
+		    CALLTYPE,
+		    MONTH,
+		    BEGINTIME,
+		    ENDTIME,
+		    USECOUNT)
+		    SELECT SEQ_BILLSINFO.NEXTVAL,
+		         PHONENO,
+		         VIRTUALNO,
+		         #{callerno} CALLEDNO,
+		         '5' CALLTYPE,
+		         #{month} MONTH,
+		         TO_DATE(#{starttime}, 'YYYY-MM-DD HH24:MI:SS') BEGINTIME,
+		         TO_DATE(#{starttime}, 'YYYY-MM-DD HH24:MI:SS') ENDTIME,
+		         0 USECOUNT
+		    FROM XHINFO
+		    <where>
+				<if test="virtualno != null">
+					AND VIRTUALNO = #{virtualno}
+				</if>
+			</where>
+	</insert>
+</mapper>

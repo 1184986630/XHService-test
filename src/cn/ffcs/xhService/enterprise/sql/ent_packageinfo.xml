@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="EntPackageInfo">
+
+	<sql id="orderSql">
+		<if test="sortorder != null">
+			ORDER BY ${sortorder}
+		</if>
+	</sql>
+    
+	<!-- 增加套餐信息 -->
+	<insert id="insertEntBillInfo" parameterType="EntPackageInfo">
+		INSERT INTO ENT_BILLINFO (
+			PKNBR,     
+			PKNAME,    
+			PKTYPE,    
+			PKDESC,    
+			CALLERFEE, 
+			SMSFEE,    
+			CALLEDFEE, 
+			USEDFEE,   
+			CREATETIME,
+			USEDAYS   
+		) VALUES (
+			#{pknbr},     
+			#{pkname},     
+			#{pktype},     
+			#{pkdesc},     
+			#{callerfee},  
+			#{smsfee},     
+			#{calledfee},  
+			#{usedfee},    
+			#{createtime}, 
+			#{usedays}   
+		)
+	</insert>
+	
+	<!-- 查询套餐信息 -->
+	<select id="selectEntPackageInfo" parameterType="java.util.Map" resultType="EntPackageInfo">
+		SELECT 
+			PKNBR,     
+			PKNAME,    
+			PKTYPE,    
+			PKDESC,    
+			CALLERFEE, 
+			SMSFEE,    
+			CALLEDFEE, 
+			USEDFEE,   
+			CREATETIME,
+			USEDAYS
+          FROM ENT_PACKAGEINFO
+          <where>
+         	<if test="pknbr != null">
+				AND PKNBR = #{pknbr}
+			</if>
+          </where>
+	</select>
+	
+	<!-- 统计满足条件的记录数 -->
+	<select id="selectEntPackageInfoCount" parameterType="map" resultType="int">
+		 SELECT COUNT(*)
+		FROM ENT_PACKAGEINFO
+		<where>
+			<if test="pknbr != null">
+				AND PKNBR = #{pknbr}
+			</if>
+		</where>
+	</select>
+</mapper>
