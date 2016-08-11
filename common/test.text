@@ -1,0 +1,15 @@
+测试连接：
+
+
+未读小号列表：
+http://localhost:8080/XHService/app/xiaohao/unreadsms?spid=SP00001&m=17755116249&xiaohao=15311264570&rno=13369457156
+
+
+订单相关的
+获取订单分账信息:
+http://172.16.20.121:80/bllweb/tianyimall/order/revenuesharing?orderid=600000000000008316070535641618&paymentcode=111
+获取支付反馈地址：
+http://localhost:8080/tianyimall/payresaddress?orderid=600000000000008316070535641618&platformId=111
+套餐明细列表：
+http://localhost:8080/pyxiaohao/database/xiaohao/tcinfos?xspid=123456
+
